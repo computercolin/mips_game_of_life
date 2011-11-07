@@ -16,14 +16,14 @@ syscall
 move	$s6,  $v0	# Save the file descriptor
 
 # Write to the file
-li	$v0,  15	# syscall: write to file
+li	$v0,  15		# syscall: write to file
 move	$a0,  $s6	# file descriptor
 la	$a1,  buffer	# buffer from which to write
-li	$a2,  44	# hardcoded buffer length
+li	$a2,  44		# hardcoded buffer length
 syscall
 
 # Close the file
-li	$v0,  16	# syscall: close file
+li	$v0,  16		# syscall: close file
 move	$a0,  $s6	# file descriptor
 syscall
 
@@ -31,3 +31,12 @@ syscall
 			# $a0 = numRows
 			# $a1 = numCols
 			# $a2 = starting address of the grid
+
+			
+#Structure of Assembly File ( in thoughts of joe meyer)
+	# 1) place initial array in memory (either through reading an outside file(harder) or through a hardcoded array in assmembly (easier))
+	# 2) perform cellular automata function to generate new world array
+	# 3) open file to write
+	# 4) write to file
+	# 5) close the file
+	# 6) jump to 2)
