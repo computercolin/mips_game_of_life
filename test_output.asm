@@ -1,7 +1,10 @@
 
 .data
-fout:	.asciiz "test.txt"
-buffer: .asciiz "The quick brown over jumps fox the lazy dog."
+fout:		.asciiz "test.txt"
+buffer:		.asciiz "The quick brown over jumps fox the lazy dog."
+liveChar:	.asciiz "X"
+headChar: 	.asciiz "O"
+newLine:	.asciiz "\r\n"
 
 .text
 # Open file for writing
@@ -23,3 +26,8 @@ syscall
 li	$v0,  16	# syscall: close file
 move	$a0,  $s6	# file descriptor
 syscall
+
+# Output Memory Procedure
+			# $a0 = numRows
+			# $a1 = numCols
+			# $a2 = starting address of the grid
