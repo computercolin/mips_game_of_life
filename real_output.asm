@@ -24,8 +24,6 @@ lw	$t1, 0($t1)
 mul	$t0, $t0, $t1			# num bytes = m*n
 la	$t1, lastStaticAddr
 add	$s7, $t0, $t1			# starting address for game grid 2
-#TODO remove me
-addi	$s7, $zero, 0x100100a0
 addi	$sp, $sp, -4			# prime the stack and get started
 
 runGrids:
@@ -78,47 +76,61 @@ innerLoopCheck:
 	j	outerLoopIncrement
 innerLoopBody:	
 	move	$s2, $zero		# $s2 = number of live neighbors
-	move	$a0, $s5		# arg0 = x
-	move	$a1, $s3		# arg1 = y
 	
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
-	
+
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, -1		# x_offset
 	addi	$a3, $zero, -1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, 0		# x_offset
 	addi	$a3, $zero, -1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state	
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, 1		# x_offset
 	addi	$a3, $zero, -1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, 1		# x_offset
 	addi	$a3, $zero, 0		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, 1		# x_offset
 	addi	$a3, $zero, 1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, 0		# x_offset
 	addi	$a3, $zero, 1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, -1		# x_offset
 	addi	$a3, $zero, 1		# y_offset
 	jal	getNeighbor
 	add	$s2, $s2, $v0		# $s2 += neighbor_life_state
 
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	addi	$a2, $zero, -1		# x_offset
 	addi	$a3, $zero, 0		# y_offset
 	jal	getNeighbor
@@ -130,6 +142,8 @@ innerLoopBody:
 	move	$a2, $s0		# start address of grid
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	jal	loadReturnIsAlive	# are we alive?
 	addi	$sp, $sp, 4
 	lw	$ra, 0($sp)		# restore our return address
@@ -141,6 +155,8 @@ liveDieQuestionForDeadCells:
 	move	$a2, $s1		# start address of grid
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	jal	storeAliveState		# store our state ($a3)
 	addi	$sp, $sp, 4
 	lw	$ra, 0($sp)		# restore our return address
@@ -156,6 +172,8 @@ dieAndNext:
 
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	jal	storeAliveState		# store our dead state ($a3)
 	addi	$sp, $sp, 4	
 	lw	$ra, 0($sp)		# restore our return address
@@ -167,6 +185,8 @@ liveAndNext:
 	
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
+	move	$a0, $s5		# arg0 = x
+	move	$a1, $s3		# arg1 = y
 	jal	storeAliveState		# store our live state ($a3)
 	addi	$sp, $sp, 4
 	lw	$ra, 0($sp)		# restore our return address
@@ -181,12 +201,12 @@ innerLoopIncrement:
 # requires: $s0 is starting address of game grid
 # requires: labels "n" and "m" point to static data for # grid rows and columns
 getNeighbor:
-	lw 	$t0,  m
+	lw 	$t0,  n
 	add 	$a0, $a0, $a2
 	bgt	$a0, $t0, tooLargeX
 	blt	$a0, $zero, tooSmallX
 getNeighborY:
-	lw 	$t0,  n
+	lw 	$t0,  m
 	add 	$a1, $a1, $a3
 	bgt	$a1, $t0, tooLargeY
 	blt	$a0, $zero, tooSmallY

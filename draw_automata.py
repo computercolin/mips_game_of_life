@@ -7,7 +7,7 @@
 # Created with inspiration from http://home.netwood.net/jessw/paint.py
 
 from Tkinter import *
-import os
+import os, struct
 
 GRAPHICS_FILE_NAME = "game_step.txt"
 LIVE_CHAR = 'X'
@@ -37,16 +37,22 @@ class gridWindow:
     def processInput(self, fname):
         f = open(fname, 'r')
         line = f.readline()
-        dimensions = line.split(",");
-        inputRows = int(dimensions[0]);
-        inputCols = int(dimensions[1]);
+        f.close()
+
+        # '>' is for big endian, 'B' is for unsigned byte
+        inputRows = struct.unpack('>B', line[0])[0]
+        inputCols = struct.unpack('>B', line[1])[0]
+        
+        print "%d,%d board" % (inputCols, inputRows)
+
         inputWidth = inputCols * CELL_WIDTH;
         inputHeight = inputRows * CELL_WIDTH;
 
+        # Check is we changed board size (change of game)
         if (inputWidth != self.gridWidth or inputHeight != self.gridHeight):
             self.buildCanvas(inputWidth, inputHeight)
 
-        inputData = list(f.readline())
+        inputData = line[2:]
         if (inputRows*inputCols > len(inputData)):
             return
         for row in range(inputRows):
