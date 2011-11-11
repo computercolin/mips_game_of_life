@@ -151,7 +151,7 @@ innerLoopBody:
 	bne	$v0, $zero, liveDieQuestionForLiveCells
 liveDieQuestionForDeadCells:
 	addi	$t0, $zero, 3		# $t0 = 3
-	seq	$a3, $v0, $t0		# if 3 live neighbors, we live
+	seq	$a3, $s2, $t0		# if 3 live neighbors, we live
 	move	$a2, $s1		# start address of grid
 	sw	$ra, 0($sp)		# preserve our return address
 	addi	$sp, $sp, -4
