@@ -5,6 +5,7 @@
 #
 # Python cellular automata printer
 # Created with inspiration from http://home.netwood.net/jessw/paint.py
+# 
 
 from Tkinter import *
 import os, struct
