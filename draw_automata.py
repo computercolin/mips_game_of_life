@@ -4,13 +4,21 @@
 # 6 Nov 2011
 #
 # Python cellular automata printer
-# Created with inspiration from http://home.netwood.net/jessw/paint.py
-# 
+# Created with inspiration from
+# * http://home.netwood.net/jessw/paint.py
+# * http://mcsp.wartburg.edu/zelle/python/graphics.py
 
-from Tkinter import *
-import os, struct
+import os, struct, time
+# Support 2.x and 3.x Tkinter naming
+try:
+   from tkinter import *
+except:
+   from Tkinter import *
 
-GRAPHICS_FILE_NAME = "game_step.txt"
+
+GAME_STEP_FILE_NAME = "game_step.txt"
+GAME_IMAGE_OUT_DIR = "board_imgs"
+GAME_IMAGE_OUT_FORMAT = "gif"
 LIVE_CHAR = 'X'
 LIVE_COLOR = 'white'
 DEAD_COLOR = 'black'
@@ -27,13 +35,33 @@ class gridWindow:
         self.rootWin.title("NoClass Virtual MIPS Graphics Device")
         
         self.canvas = None
+        self.photoimage = None
+        self.img_out_dir = ''
+        if (not os.path.isdir(GAME_IMAGE_OUT_DIR)):
+            os.mkdir(GAME_IMAGE_OUT_DIR)
+        if (os.path.isdir(GAME_IMAGE_OUT_DIR)):
+            self.img_out_dir = GAME_IMAGE_OUT_DIR + '/'
+
         self.pollGraphicsFile()
         
-    def buildCanvas(self, gridWidth, gridHeight):
+    def buildCanvases(self, gridWidth, gridHeight):
         if (self.canvas != None):
-		        self.canvas.destroy()
+          self.canvas.destroy()
+          del self.canvas
         self.canvas = Canvas(self.rootWin, height=gridHeight, width=gridWidth)
         self.canvas.grid(row=1, column=1)
+        
+        if (self.photoimage != None):
+            del self.photoimage
+        self.photoimage = PhotoImage(master=self.rootWin, height=gridHeight, width=gridWidth)
+        
+    def drawCell(self, x, y, fcolor):
+        xPix = x * CELL_WIDTH
+        yPix = y * CELL_WIDTH
+        rowData = '{' + ' '.join([fcolor]*CELL_WIDTH) + '}'
+        for offset in range(0, CELL_WIDTH):
+            self.photoimage.put(rowData, (xPix, yPix + offset))
+        
         
     def processInput(self, fname):
         f = open(fname, 'r')
@@ -51,31 +79,51 @@ class gridWindow:
 
         # Check is we changed board size (change of game)
         if (inputWidth != self.gridWidth or inputHeight != self.gridHeight):
-            self.buildCanvas(inputWidth, inputHeight)
+            self.buildCanvases(inputWidth, inputHeight)
 
         inputData = line[2:]
-        if (inputRows*inputCols > len(inputData)):
-            return
+        boardIsIncomplete = inputRows*inputCols > len(inputData)
+        if (boardIsIncomplete):
+            print "!! Warning:", inputRows*inputCols, "cell grid specified, but only found", len(inputData)
+
         for row in range(inputRows):
             for col in range(inputCols):
                 fcolor = DEAD_COLOR
-                if (inputData[row*inputCols + col] == LIVE_CHAR):
+                if (row*inputCols + col >= len(inputData)):
+                    pass
+                elif (inputData[row*inputCols + col] == LIVE_CHAR):
                     fcolor = LIVE_COLOR
-                x = col * CELL_WIDTH
-                x_max = x + CELL_WIDTH
-                y = row * CELL_WIDTH
-                y_max = y + CELL_WIDTH
-                self.canvas.create_rectangle(x, y, x_max, y_max, fill=fcolor)
+                
+                self.drawCell(col, row, fcolor)
+
+        # Draw image to canvas for display
+        self.canvas.create_image(0,0,image=self.photoimage, anchor="nw")
+
+        if (not boardIsIncomplete):
+            self.saveBoardImage()
     
+    def saveBoardImage(self):
+        tstamp = "%d" % (time.time()*100)   # milliseconds since epoch
+        fname = self.img_out_dir + tstamp + '.' + GAME_IMAGE_OUT_FORMAT
+        self.photoimage.write(fname, GAME_IMAGE_OUT_FORMAT)
+
+        print "image written to", fname
+
     def pollGraphicsFile(self):
-        # Check the file
-        new_mod = os.path.getmtime(GRAPHICS_FILE_NAME)
-        if new_mod != self.graphicsFileLastMod:
-            # Do redraw loop
-            self.graphicsFileLastMod = new_mod
-            self.processInput(GRAPHICS_FILE_NAME)
+        try:
+            # Check the file
+            new_mod = os.path.getmtime(GAME_STEP_FILE_NAME)
+            if new_mod != self.graphicsFileLastMod:
+                # Do redraw loop
+                self.graphicsFileLastMod = new_mod
+                self.processInput(GAME_STEP_FILE_NAME)
+        except Exception, e:
+            print "-- Failed to read file, will retry later. --"
+            print e
+            
+
         # Check again in a few milliseconds
-        self.rootWin.after(100, self.pollGraphicsFile)	# milliseconds
+        self.rootWin.after(40, self.pollGraphicsFile)	# milliseconds
 
 
 if __name__ == "__main__":
